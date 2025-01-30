@@ -81,7 +81,7 @@ class _CalculatorAppState extends State<CalculatorApp> {
                       children: [
                         specilaBtn(screenWidth, screenHeight, "AC"),
                         specilaBtn(screenWidth, screenHeight, "C"),
-                        specilaBtn(screenWidth, screenHeight, "%"),
+                        specilaBtn(screenWidth, screenHeight, "x²"),
                         operators(screenWidth, screenHeight, "/"),
                       ],
                     ),
@@ -178,7 +178,12 @@ class _CalculatorAppState extends State<CalculatorApp> {
                 } else {
                   inp = '0';
                 }
-              } else {
+              }
+              else if(specialOperation == 'x²'){
+                evaluateExpression('power');
+
+              }
+               else {
                 if (inp == "0") {
                 } else {
                   inp += "%";
@@ -279,7 +284,18 @@ class _CalculatorAppState extends State<CalculatorApp> {
     ContextModel cm = ContextModel();
     double eval = exp.evaluate(EvaluationType.REAL, cm);
 
-    if (status) {
+if (status == "power") {
+  var result = eval.toString(); // Ensure eval is a number
+  try {
+    double valueNumber = double.parse(result); // Convert to number
+    double valueSquare = valueNumber * valueNumber; // Square the number
+    value = valueSquare.toString(); // Convert back to string
+  } catch (e) {
+    print("Error: Invalid number format - $e");
+  }
+}
+
+    else if (status) {
       setState(() {
         var result = eval.toString();
         // Display result without the decimal point if it's a whole number
@@ -290,7 +306,9 @@ class _CalculatorAppState extends State<CalculatorApp> {
         inp = inp;
       });
 
-    } else {
+    } 
+    
+    else {
       setState(() {
         var result = eval.toString();
         // Display result without the decimal point if it's a whole number
