@@ -12,12 +12,10 @@ class CalculatorApp extends StatefulWidget {
 
 class _CalculatorAppState extends State<CalculatorApp> {
   String inp = "0"; // ✅ Moved here to persist input
-  var value = "";
-  var result = false;
+  // var value = "";
   @override
   Widget build(BuildContext context) {
     // String inp = "0";  // ✅ Define it in the class, so it persists
-    // var result = 36;
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
@@ -25,41 +23,6 @@ class _CalculatorAppState extends State<CalculatorApp> {
       child: Scaffold(
         body: Column(
           children: [
-            // Container(
-            //   width: screenWidth,
-            //   height: screenHeight * 0.350,
-            //   color: Colors.black, // Set background color
-            //   alignment: Alignment.bottomRight, // Align text to the right
-            //   padding:
-            //       EdgeInsets.only(right: screenWidth * 0.02), // Add padding
-            //   child: Column(
-            //     mainAxisAlignment: MainAxisAlignment
-            //         .end, // This will space out the texts
-            //     children: [
-            //       Text(
-            //         'Bottommmmmmmmmmmmmmmmmm Texting',
-            //         style: TextStyle(
-            //           fontWeight: FontWeight.bold,
-            //           fontSize: screenWidth * 0.08,
-            //           color: Colors.white,
-            //         ),
-            //         textAlign: TextAlign.right,
-            //       ),
-            //       Text(
-            //         'Bottom Text',
-            //         style: TextStyle(
-            //           fontWeight: FontWeight.bold,
-            //           fontSize: screenWidth * 0.09, // Dynamic font size
-            //           color: Colors.white, // Better contrast
-            //         ),
-            //         textAlign: TextAlign.right,
-            //       ),
-            //     ],
-            //   ),
-            // ),
-        
-        
-            // First Container (Expression Display)
             Container(
               width: screenWidth,
               height: screenHeight * 0.25,
@@ -68,7 +31,7 @@ class _CalculatorAppState extends State<CalculatorApp> {
               padding:
                   EdgeInsets.only(right: screenWidth * 0.02), // Add padding
               child: Text(
-                result ? inp : "",
+                "",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: screenWidth * 0.09, // Dynamic font size
@@ -88,7 +51,7 @@ class _CalculatorAppState extends State<CalculatorApp> {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  result ? value : inp, 
+                  inp,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: screenWidth * 0.12, // Dynamic font size
@@ -195,11 +158,17 @@ class _CalculatorAppState extends State<CalculatorApp> {
             setState(() {
               if (specialOperation == "AC") {
                 inp = "0";
-                value = "";
-                result = false;
               } else if (specialOperation == "C") {
                 if (inp.isNotEmpty) {
-                  inp = inp.substring(0, inp.length - 1);
+                  if (inp.length > 1) {
+                    inp = inp.substring(0, inp.length - 1);
+                    // evaluateExpression();
+                  } else {
+                    inp = inp.substring(0, 0);
+                    inp = "0";
+                  }
+                } else {
+                  inp = '0';
                 }
               } else {
                 if (inp == "0") {
@@ -229,21 +198,25 @@ class _CalculatorAppState extends State<CalculatorApp> {
                   screenWidth * 0.12), // Dynamic rounded corners
             ),
           ),
-         onPressed: () {
-  setState(() {
-    if (inp == "0") {
-      // Handle case where inp is just "0" or empty
-    } else {
-      if (operator == "=") {
-        print('Evaluating expression');
-        evaluateExpression(); // Just call the method without passing inp
-      } else {
-        inp += operator; // Append operator
-      }
-    }
-  });
-}
-,
+          onPressed: () {
+            setState(() {
+              if (inp == "0") {
+                // Handle case where inp is just "0" or empty
+              } else {
+                if (operator == "=") {
+                  print('Evaluating expression');
+                  evaluateExpression(); // Just call the method without passing inp
+                } else {
+                  if(inp[inp.length - 1] == "/" || inp[inp.length - 1] == "+" || inp[inp.length - 1] == "-" || inp[inp.length - 1] == "*"){                    
+                  }
+                  else{
+                  inp += operator; // Append operator
+                  }
+                  // evaluateExpression();
+                }
+              }
+            });
+          },
           child: Text(operator, style: TextStyle(fontSize: screenWidth * 0.08)),
         ),
       ),
@@ -278,21 +251,25 @@ class _CalculatorAppState extends State<CalculatorApp> {
     );
   }
 
-
 void evaluateExpression() {
   try {
+    String expression = inp;
+
+    // No need for percentage conversion, just parse and evaluate the expression
     Parser p = Parser();
-    Expression exp = p.parse(inp); // Use the class variable inp directly
+    Expression exp = p.parse(expression);
     ContextModel cm = ContextModel();
     double eval = exp.evaluate(EvaluationType.REAL, cm);
-    
+
     setState(() {
-      result = true;
-      value = eval.toString();
+      var result = eval.toString();
+      // Display result without the decimal point if it's a whole number
+      inp = result.endsWith('.0') ? result.split('.')[0] : double.parse(result).toStringAsFixed(2);
     });
   } catch (e) {
     print('Error evaluating expression: $e');
   }
+}
 
-  }
-  }
+
+}
