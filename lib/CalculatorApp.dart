@@ -12,7 +12,7 @@ class CalculatorApp extends StatefulWidget {
 
 class _CalculatorAppState extends State<CalculatorApp> {
   String inp = "0"; // ✅ Moved here to persist input
-  // var value = "";
+  var value = "";
   @override
   Widget build(BuildContext context) {
     // String inp = "0";  // ✅ Define it in the class, so it persists
@@ -24,37 +24,41 @@ class _CalculatorAppState extends State<CalculatorApp> {
         body: Column(
           children: [
             Container(
-              width: screenWidth,
-              height: screenHeight * 0.25,
-              color: Colors.black, // Set background color
-              alignment: Alignment.bottomRight, // Align text to the right
-              padding:
-                  EdgeInsets.only(right: screenWidth * 0.02), // Add padding
-              child: Text(
-                "",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: screenWidth * 0.09, // Dynamic font size
-                  color: Colors.white, // Better contrast
-                ),
-                textAlign: TextAlign.right,
-              ),
-            ),
+                width: screenWidth,
+                height: screenHeight * 0.25,
+                color: Colors.black, // Set background color
+                // color: Colors.blue, // Set background color
+                alignment: Alignment.bottomRight, // Align text to the right
+                padding:
+                    EdgeInsets.only(right: screenWidth * 0.02), // Add padding
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    inp,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: screenWidth * 0.11, // Dynamic font size
+                      color: Colors.white, // Better contrast
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                )),
             // Second Container (Result Display)
             Container(
               width: screenWidth,
               height: screenHeight * 0.1,
               color: Colors.black, // Set background color
+              // color: Colors.red, // Set background color
               alignment: Alignment.topRight, // Align text to the right
               padding:
                   EdgeInsets.only(right: screenWidth * 0.02), // Add padding
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  inp,
+                  value,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: screenWidth * 0.12, // Dynamic font size
+                    fontSize: screenWidth * 0.09, // Dynamic font size
                     color: Colors.white, // Better contrast
                   ),
                   textAlign: TextAlign.right,
@@ -158,14 +162,18 @@ class _CalculatorAppState extends State<CalculatorApp> {
             setState(() {
               if (specialOperation == "AC") {
                 inp = "0";
+                value = "";
               } else if (specialOperation == "C") {
                 if (inp.isNotEmpty) {
                   if (inp.length > 1) {
-                    inp = inp.substring(0, inp.length - 1);
-                    // evaluateExpression();
+                    setState(() {
+                      inp = inp.substring(0, inp.length - 1);
+                    });
+                    evaluateExpression(false);
                   } else {
                     inp = inp.substring(0, 0);
                     inp = "0";
+                    value = "";
                   }
                 } else {
                   inp = '0';
@@ -204,14 +212,24 @@ class _CalculatorAppState extends State<CalculatorApp> {
                 // Handle case where inp is just "0" or empty
               } else {
                 if (operator == "=") {
-                  print('Evaluating expression');
-                  evaluateExpression(); // Just call the method without passing inp
+                  evaluateExpression(
+                      true); // Just call the method without passing inp
                 } else {
-                  if(inp[inp.length - 1] == "/" || inp[inp.length - 1] == "+" || inp[inp.length - 1] == "-" || inp[inp.length - 1] == "*"){                    
+                  if (inp.isNotEmpty &&
+                      (inp[inp.length - 1] == "/" ||
+                          inp[inp.length - 1] == "+" ||
+                          inp[inp.length - 1] == "-" ||
+                          inp[inp.length - 1] == "*")) {
+                    // Do nothing if the last character is an operator
+                  } else {
+                    setState(() {
+                      
+                    inp += operator; // Append operator
+                    });
                   }
-                  else{
-                  inp += operator; // Append operator
-                  }
+                  evaluateExpression(false);
+
+
                   // evaluateExpression();
                 }
               }
@@ -242,6 +260,7 @@ class _CalculatorAppState extends State<CalculatorApp> {
                 inp = value; // Replace if it's the first input
               } else {
                 inp += value; // Append if input already has numbers
+                evaluateExpression(false);
               }
             });
           },
@@ -251,8 +270,7 @@ class _CalculatorAppState extends State<CalculatorApp> {
     );
   }
 
-void evaluateExpression() {
-  try {
+  void evaluateExpression(status) {
     String expression = inp;
 
     // No need for percentage conversion, just parse and evaluate the expression
@@ -261,15 +279,27 @@ void evaluateExpression() {
     ContextModel cm = ContextModel();
     double eval = exp.evaluate(EvaluationType.REAL, cm);
 
-    setState(() {
-      var result = eval.toString();
-      // Display result without the decimal point if it's a whole number
-      inp = result.endsWith('.0') ? result.split('.')[0] : double.parse(result).toStringAsFixed(2);
-    });
-  } catch (e) {
-    print('Error evaluating expression: $e');
+    if (status) {
+      setState(() {
+        var result = eval.toString();
+        // Display result without the decimal point if it's a whole number
+        inp = result.endsWith('.0')
+            ? result.split('.')[0]
+            : double.parse(result).toStringAsFixed(2);
+        value = '';
+        inp = inp;
+      });
+
+    } else {
+      setState(() {
+        var result = eval.toString();
+        // Display result without the decimal point if it's a whole number
+        inp = result.endsWith('.0')
+            ? result.split('.')[0]
+            : double.parse(result).toStringAsFixed(2);
+        value = inp;
+        inp = expression;
+      });
+    }
   }
-}
-
-
 }
