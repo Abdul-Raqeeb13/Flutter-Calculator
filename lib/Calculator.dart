@@ -3,19 +3,17 @@
 import 'package:math_expressions/math_expressions.dart';
 import 'package:flutter/material.dart';
 
-class CalculatorApp extends StatefulWidget {
-  const CalculatorApp({super.key});
+class Calculator extends StatefulWidget {
+  const Calculator({super.key});
 
   @override
-  State<CalculatorApp> createState() => _CalculatorAppState();
+  State<Calculator> createState() => _CalculatorState();
 }
 
-class _CalculatorAppState extends State<CalculatorApp> {
+class _CalculatorState extends State<Calculator> {
   String inp = "0"; // ✅ Moved here to persist input
-  var value = "";
   @override
   Widget build(BuildContext context) {
-    // String inp = "0";  // ✅ Define it in the class, so it persists
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
@@ -23,39 +21,18 @@ class _CalculatorAppState extends State<CalculatorApp> {
       child: Scaffold(
         body: Column(
           children: [
-            Container(
-                width: screenWidth,
-                height: screenHeight * 0.25,
-                color: Colors.black, // Set background color
-                // color: Colors.blue, // Set background color
-                alignment: Alignment.bottomRight, // Align text to the right
-                padding:
-                    EdgeInsets.only(right: screenWidth * 0.02), // Add padding
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    inp,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: screenWidth * 0.11, // Dynamic font size
-                      color: Colors.white, // Better contrast
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                )),
-            // Second Container (Result Display)
+          
             Container(
               width: screenWidth,
-              height: screenHeight * 0.1,
+              height: screenHeight * 0.350,
               color: Colors.black, // Set background color
-              // color: Colors.red, // Set background color
-              alignment: Alignment.topRight, // Align text to the right
+              alignment: Alignment.bottomRight, // Align text to the right
               padding:
                   EdgeInsets.only(right: screenWidth * 0.02), // Add padding
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  value,
+                  inp,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: screenWidth * 0.09, // Dynamic font size
@@ -162,25 +139,22 @@ class _CalculatorAppState extends State<CalculatorApp> {
             setState(() {
               if (specialOperation == "AC") {
                 inp = "0";
-                value = "";
               } else if (specialOperation == "C") {
                 if (inp.isNotEmpty) {
                   if (inp.length > 1) {
                     setState(() {
                       inp = inp.substring(0, inp.length - 1);
                     });
-                    evaluateExpression(false);
                   } else {
                     inp = inp.substring(0, 0);
                     inp = "0";
-                    value = "";
                   }
                 } else {
                   inp = '0';
                 }
               }
               else if(specialOperation == 'x²'){
-                evaluateExpression('power');
+                evaluateExpression(false);
 
               }
                else {
@@ -217,8 +191,7 @@ class _CalculatorAppState extends State<CalculatorApp> {
                 // Handle case where inp is just "0" or empty
               } else {
                 if (operator == "=") {
-                  evaluateExpression(
-                      true); // Just call the method without passing inp
+                  evaluateExpression(true); // Just call the method without passing inp
                 } else {
                   if (inp.isNotEmpty &&
                       (inp[inp.length - 1] == "/" ||
@@ -232,10 +205,8 @@ class _CalculatorAppState extends State<CalculatorApp> {
                     inp += operator; // Append operator
                     });
                   }
-                  evaluateExpression(false);
 
 
-                  // evaluateExpression();
                 }
               }
             });
@@ -265,7 +236,6 @@ class _CalculatorAppState extends State<CalculatorApp> {
                 inp = value; // Replace if it's the first input
               } else {
                 inp += value; // Append if input already has numbers
-                evaluateExpression(false);
               }
             });
           },
@@ -275,65 +245,55 @@ class _CalculatorAppState extends State<CalculatorApp> {
     );
   }
 
-  void evaluateExpression(status) {
-  String expression = inp;
-
-  // Parse the expression manually from left to right
-  RegExp regExp = RegExp(r'(\d+(\.\d+)?)|[\+\-\*/]');
-  List<String> tokens = regExp.allMatches(expression).map((m) => m.group(0)!).toList();
-  
-  double result = double.parse(tokens[0]);  // Start with the first number
-  int i = 1;
-
-  while (i < tokens.length) {
-    String operator = tokens[i];
-    double nextNumber = double.parse(tokens[i + 1]);
-
-    // Perform the operation based on the operator, ignoring BODMAS
-    if (operator == '+') {
-      result += nextNumber;
-    } else if (operator == '-') {
-      result -= nextNumber;
-    } else if (operator == '*') {
-      result *= nextNumber;
-    } else if (operator == '/') {
-      result /= nextNumber;
+  void evaluateExpression(bool status) {
+  try {
+    // Regular expression to match numbers and operators
+    RegExp regExp = RegExp(r'(\d+(\.\d+)?)|[\+\-\*/]');
+    List<String> tokens = regExp.allMatches(inp).map((m) => m.group(0)!).toList();
+  print(tokens);
+    if (tokens.isEmpty) {
+      print("Error: Invalid expression");
+      return;
     }
 
-    i += 2; // Move to the next operator and number
-  }
+    double result = double.parse(tokens[0]);
 
-  if (status == "power") {
-    // Square the result if status is 'power'
-    var resultString = result.toString();
-    try {
-      double valueNumber = double.parse(resultString); // Convert to number
-      double valueSquare = valueNumber * valueNumber; // Square the number
-      value = valueSquare.toString(); // Convert back to string
-    } catch (e) {
-      print("Error: Invalid number format - $e");
+    for (int i = 1; i < tokens.length; i += 2) {
+      if (i + 1 >= tokens.length) break; // Prevent out-of-bounds error
+
+      String operator = tokens[i];
+      double nextValue = double.parse(tokens[i + 1]);
+
+      // Perform operations in strict left-to-right order
+      if (operator == "+") {
+        result += nextValue;
+      } else if (operator == "-") {
+        result -= nextValue;
+      } else if (operator == "*") {
+        result *= nextValue;
+      } else if (operator == "/") {
+        if (nextValue == 0) {
+          print("Error: Division by zero");
+          return;
+        }
+        result /= nextValue;
+      }
     }
-  } else if (status) {
-    // For other status types, update the UI with the result
+
+    if (!status) {
+      // Square the result
+      result *= result;
+    }
+
     setState(() {
-      var resultString = result.toString();
-      inp = resultString.endsWith('.0')
-          ? resultString.split('.')[0] // Remove the decimal point for whole numbers
-          : double.parse(resultString).toStringAsFixed(2);
-      value = '';
-      inp = inp;
+      inp = result.toString().endsWith('.0')
+          ? result.toInt().toString()
+          : result.toStringAsFixed(2);
     });
-  } else {
-    // Default case when no other status
-    setState(() {
-      var resultString = result.toString();
-      inp = resultString.endsWith('.0')
-          ? resultString.split('.')[0]
-          : double.parse(resultString).toStringAsFixed(2);
-      value = inp;
-      inp = expression;
-    });
+  } catch (e) {
+    print("Error: Invalid expression - $e");
   }
 }
+
 
 }

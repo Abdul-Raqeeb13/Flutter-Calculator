@@ -1,3 +1,6 @@
+// ignore_for_file: prefer_const_constructors
+
+import 'package:calculator/Calculator.dart';
 import 'package:calculator/CalculatorApp.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: CalculatorApp(),
+      // home: Calculator(),
 
     );
   }
