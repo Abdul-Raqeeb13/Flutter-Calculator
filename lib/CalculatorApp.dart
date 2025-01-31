@@ -309,7 +309,8 @@ class _CalculatorAppState extends State<CalculatorApp> {
     try {
       double valueNumber = double.parse(resultString); // Convert to number
       double valueSquare = valueNumber * valueNumber; // Square the number
-      value = valueSquare.toString(); // Convert back to string
+      // value = valueSquare.toString(); // Convert back to string
+      inp = valueSquare.toString();
     } catch (e) {
       print("Error: Invalid number format - $e");
     }
